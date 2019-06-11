@@ -231,3 +231,148 @@ Akka使用Git并在[Github](https://github.com)上托管。
 
 在同一问题域中还有另一个名为[Hello Akka！](http://www.lightbend.com/activator/template/hello-akka)的[Lightbend Activator](http://www.lightbend.com/platform/getstarted)教程。 它更深入地描述了Akka的基础知识。
 
+## 2.5 用例和部署方案
+
+### 2.5.1 我该如何使用和部署Akka?
+
+Akka可以以不同的方式使用：
+
+- 作为库文件使用：　用作常规JAR, 添加到类路径(classpath)中，或者添加到Web应用程序中的，放入 WEB-INF/lib 下
+- 使用　[sbt-native-packager](https://github.com/sbt/sbt-native-packager) 打包
+- 使用　[Lightbend ConductR](http://www.lightbend.com/products/conductr)  打包和部署。
+
+### 2.5.2 本地打包
+
+[sbt-native-packager](https://github.com/sbt/sbt-native-packager) sbt-native-packager 打包程序是一种工具, 用于创建任何类型的应用程序 (包括 Akka 应用程序) 的分布。在 project/build.properties 文件中定义 sbt 版本:
+
+```
+sbt.version=0.13.7
+```
+
+在 project/plugins.sbt 文件中添加[ sbt-native-packager](https://github.com/sbt/sbt-native-packager)  sbt-native-packager :
+
+```
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.0-RC1")
+```
+
+
+使用包设置并(可选择)在 build.sbt 文件中指定 mainClass：
+
+```
+import NativePackagerHelper._
+name := "akka-sample-main-scala"
+version := "2.4.20"
+scalaVersion := "2.11.8"
+libraryDependencies ++= Seq(
+"com.typesafe.akka" %% "akka-actor" % "2.4.20"
+)
+enablePlugins(JavaServerAppPackaging)
+
+
+mainClass in Compile := Some("sample.hello.Main")
+mappings in Universal ++= {
+// optional example illustrating how to copy additional directory
+directory("scripts") ++
+// copy configuration files to config directory
+contentOf("src/main/resources").toMap.mapValues("config/" + _)
+}
+// add ’config’ directory first in the classpath of the start script,
+// an alternative is to set the config file locations via CLI parameters
+// when starting the application
+scriptClasspath := Seq("../config/") ++ scriptClasspath.value
+licenses := Seq(("CC0", url("http://creativecommons.org/publicdomain/zero/1.0")))
+```
+
+>注意：使用JavaServerAppPackaging。 不要使用已弃用的AkkaAppPackaging（之前命名为
+  packageArchetype.akka_application），因为它没有与JavaServerAppPackaging相同的灵活性和质量。
+
+
+使用sbt task dist打包应用程序。
+要启动应用程序（在基于unix的系统上）：
+
+```
+cd target/universal/
+unzip akka-sample-main-scala-2.4.20.zip
+chmod u+x akka-sample-main-scala-2.4.20/bin/akka-sample-main-scala
+akka-sample-main-scala-2.4.20/bin/akka-sample-main-scala sample.hello.Main
+```
+
+使用Ctrl-C中断和退出应用程序。
+在 Windows 机器上，您还可以使用 bin\akka-sample-main-scala.bat 脚本。
+
+
+### 2.5.3 在 Docker 容器中
+
+您可以在Docker容器中使用Akka远程处理和Akka Cluster。 但请注意，使用Docker时需要特别注意网络配置，如下所述：remote-configuration-nat
+
+
+有关如何使用Akka Cluster和Docker设置项目的示例，请查看 [“akka-docker-cluster”](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-docker-compose-java) 激活器模板。
+
+
+## 2.6 Akka的用例示例
+
+我们看到Akka被许多大型组织所采用，包括投资和商业银行，零售和社交媒体，模拟，游戏和博彩，汽车和交通系统，医疗保健，数据分析等等。 任何需要高吞吐量和低延迟的系统都是使用Akka的良好候选者。
+
+关于Akka的用例有一个很好的讨论，生产用户[在这里](http://stackoverflow.com/questions/4493001/good-use-case-for-akka/4494512#4494512) 做了一些很好的报道
+
+### 2.6.1 以下是Akka部署到生产中的一些领域
+
+** 交易处理（在线游戏，金融/银行，交易，统计，投注，社交 媒体，电信）**
+
+向上扩展，向外扩展，容错/ HA
+
+
+** 服务后端（任何行业，任何应用程序）**
+
+服务REST，SOAP，Cometd，WebSockets等充当消息中心/集成层扩展，向外扩展，容错/ HA
+
+** 并发/并行（任何应用程序）**
+
+正确易于使用和理解只需将jar添加到现有的JVM项目中（使用Scala，Java，Groovy或JRuby）
+
+** 模拟 **
+
+主人/工人(Master/Worker)，计算网格(Compute Grid)，MapReduce等 
+
+** 批处理（任何行业）**
+
+Camel集成以与批处理数据源连接Actors分割并征服批处理工作负载
+
+** 通讯中心（电信，网络媒体，移动媒体）**
+
+向上扩展，向外扩展，容错/ HA
+
+** 游戏和投注（MOM，在线游戏，投注） **
+
+向上扩展，向外扩展，容错/ HA
+
+** 商业智能/数据挖掘/通用计算 **
+
+向上扩展，向外扩展，容错/ HA
+
+** 复杂事件流处理 **
+
+向上扩展，向外扩展，容错/ HA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
